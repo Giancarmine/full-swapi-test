@@ -1,7 +1,11 @@
 const { getAllCharacters, getCharacterById } = require('../../src/controllers/characterController');
-const characterService = require('../../src/services/characterService');
 
-jest.mock('../../src/services/characterService');
+jest.mock('../../src/services/characterService', () => ({
+  getCharacters: jest.fn(() => Promise.resolve([])),
+  getCharacterById: jest.fn(() => Promise.resolve({}))
+}));
+
+const characterService = require('../../src/services/characterService');
 
 describe('Character Controller Unit Tests', () => {
   beforeEach(() => {
@@ -14,30 +18,26 @@ describe('Character Controller Unit Tests', () => {
         { id: 1, name: 'Luke Skywalker' },
         { id: 2, name: 'Darth Vader' }
       ];
-      characterService.getAllCharacters.mockResolvedValue(mockCharacters);
+      characterService.getCharacters.mockResolvedValue(mockCharacters);
       
       const req = {};
       const res = {
-        status: jest.fn().mockReturnThis(),
         json: jest.fn()
       };
       const next = jest.fn();
       
       await getAllCharacters(req, res, next);
       
-      expect(res.status).toHaveBeenCalledWith(200);
+      expect(characterService.getCharacters).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(mockCharacters);
     });
 
     it('should handle errors and call next', async () => {
       const error = new Error('Service error');
-      characterService.getAllCharacters.mockRejectedValue(error);
+      characterService.getCharacters.mockRejectedValue(error);
       
       const req = {};
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      };
+      const res = {};
       const next = jest.fn();
       
       await getAllCharacters(req, res, next);
@@ -60,6 +60,7 @@ describe('Character Controller Unit Tests', () => {
       
       await getCharacterById(req, res, next);
       
+      expect(characterService.getCharacterById).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockCharacter);
     });

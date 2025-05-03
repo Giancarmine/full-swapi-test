@@ -10,10 +10,10 @@ const favoriteService = require('../../src/services/favoriteService');
 jest.mock('../../src/services/favoriteService', () => ({
   getFavoriteFilms: jest.fn(),
   getFavoriteCharacters: jest.fn(),
-  addFilm: jest.fn(),
-  addCharacter: jest.fn(),
-  removeFilm: jest.fn(),
-  removeCharacter: jest.fn()
+  addFavoriteFilm: jest.fn(),
+  addFavoriteCharacter: jest.fn(),
+  removeFavoriteFilm: jest.fn(),
+  removeFavoriteCharacter: jest.fn()
 }));
 
 describe('Favorite Controller Unit Tests', () => {
@@ -63,7 +63,7 @@ describe('Favorite Controller Unit Tests', () => {
 
   describe('addFavoriteFilm', () => {
     it('should add a film favorite', async () => {
-      favoriteService.addFilm.mockReturnValue(true);
+      favoriteService.addFavoriteFilm.mockReturnValue(true);
       
       const req = { 
         params: { id: '1' }
@@ -72,17 +72,18 @@ describe('Favorite Controller Unit Tests', () => {
         status: jest.fn().mockReturnThis(),
         json: jest.fn()
       };
+      const next = jest.fn();
       
-      addFavoriteFilm(req, res);
+      await addFavoriteFilm(req, res, next);
       
-      expect(favoriteService.addFilm).toHaveBeenCalledWith('1');
+      expect(favoriteService.addFavoriteFilm).toHaveBeenCalledWith('1');
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
     it('should handle errors', async () => {
       const error = new Error('Failed to add favorite film');
-      favoriteService.addFilm.mockImplementation(() => {
+      favoriteService.addFavoriteFilm.mockImplementation(() => {
         throw error;
       });
       
@@ -103,7 +104,7 @@ describe('Favorite Controller Unit Tests', () => {
 
   describe('addFavoriteCharacter', () => {
     it('should add a character favorite', async () => {
-      favoriteService.addCharacter.mockReturnValue(true);
+      favoriteService.addFavoriteCharacter.mockReturnValue(true);
       
       const req = { 
         params: { id: '1' }
@@ -115,14 +116,14 @@ describe('Favorite Controller Unit Tests', () => {
       
       addFavoriteCharacter(req, res);
       
-      expect(favoriteService.addCharacter).toHaveBeenCalledWith('1');
+      expect(favoriteService.addFavoriteCharacter).toHaveBeenCalledWith('1');
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
     it('should handle errors', async () => {
       const error = new Error('Failed to add favorite character');
-      favoriteService.addCharacter.mockImplementation(() => {
+      favoriteService.addFavoriteCharacter.mockImplementation(() => {
         throw error;
       });
       
@@ -143,7 +144,7 @@ describe('Favorite Controller Unit Tests', () => {
 
   describe('removeFavoriteFilm', () => {
     it('should remove a film favorite', async () => {
-      favoriteService.removeFilm.mockReturnValue(true);
+      favoriteService.removeFavoriteFilm.mockReturnValue(true);
       
       const req = { 
         params: { id: '1' }
@@ -160,7 +161,7 @@ describe('Favorite Controller Unit Tests', () => {
     });
 
     it('should return 404 if film not found', async () => {
-      favoriteService.removeFilm.mockReturnValue(false);
+      favoriteService.removeFavoriteFilm.mockReturnValue(false);
       
       const req = { 
         params: { id: '999' }
@@ -179,7 +180,7 @@ describe('Favorite Controller Unit Tests', () => {
 
   describe('removeFavoriteCharacter', () => {
     it('should remove a character favorite', async () => {
-      favoriteService.removeCharacter.mockReturnValue(true);
+      favoriteService.removeFavoriteCharacter.mockReturnValue(true);
       
       const req = { 
         params: { id: '1' }
@@ -196,7 +197,7 @@ describe('Favorite Controller Unit Tests', () => {
     });
 
     it('should return 404 if character not found', async () => {
-      favoriteService.removeCharacter.mockReturnValue(false);
+      favoriteService.removeFavoriteCharacter.mockReturnValue(false);
       
       const req = { 
         params: { id: '999' }
