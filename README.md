@@ -45,6 +45,22 @@ cd frontend
 npm start
 ```
 
+## 🔄 CI/CD Pipeline
+
+GitHub Actions workflows are configured for:
+
+### Backend
+- ✅ Automated testing on push/pull requests
+- 🔍 Linting checks
+- 🧪 Unit & integration tests
+
+### Frontend
+- ✅ Automated testing
+- 🔍 Linting checks
+- 🏗️ Production build verification
+
+View workflows in `.github/workflows/`
+
 ## 🌟 Features
 
 - 🎬 Browse Star Wars films
