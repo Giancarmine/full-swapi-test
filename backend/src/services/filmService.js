@@ -32,7 +32,9 @@ const getFilmById = async (id) => {
     const response = await swapiClient.get(`/films/${id}`);
     
     if (!response.data || !response.data.result) {
-      throw new Error("Film not found");
+      const notFoundError = new Error("Film not found");
+      notFoundError.status = 404;
+      throw notFoundError;
     }
 
     const film = response.data.result.properties;
@@ -48,10 +50,20 @@ const getFilmById = async (id) => {
       coverImage: `https://starwars-visualguide.com/assets/img/films/${id}.jpg`
     };
   } catch (error) {
-    if (error.response && error.response.status === 429) {
-      throw new Error("API rate limit exceeded. Please try again later.");
+    if (error.response?.status === 429) {
+      const rateLimitError = new Error("API rate limit exceeded. Please try again later.");
+      rateLimitError.status = 429;
+      throw rateLimitError;
     }
+    
+    if (error.response?.status === 404) {
+      const notFoundError = new Error("Film not found");
+      notFoundError.status = 404;
+      throw notFoundError;
+    }
+    
     console.error(`Error fetching film with ID ${id}:`, error);
+    error.status = error.status || 500;
     throw error;
   }
 };
@@ -60,4 +72,3 @@ module.exports = {
   getFilms,
   getFilmById,
 };
-
