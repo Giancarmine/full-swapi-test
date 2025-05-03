@@ -1,6 +1,6 @@
 // In-memory storage for favorites
 // In a production environment, this would be stored in a database
-const favorites = {
+let favorites = {
   films: new Set(),
   characters: new Set()
 };
