@@ -13,7 +13,7 @@ const getFavorites = (req, res, next) => {
 const addFavoriteFilm = (req, res, next) => {
   const { id } = req.params;
   try {
-    favoriteService.addFilm(id);
+    favoriteService.addFavoriteFilm(id);
     res.status(201).json({ success: true });
   } catch (error) {
     next(error);
@@ -23,7 +23,7 @@ const addFavoriteFilm = (req, res, next) => {
 const addFavoriteCharacter = (req, res, next) => {
   const { id } = req.params;
   try {
-    favoriteService.addCharacter(id);
+    favoriteService.addFavoriteCharacter(id);
     res.status(201).json({ success: true });
   } catch (error) {
     next(error);
@@ -32,7 +32,7 @@ const addFavoriteCharacter = (req, res, next) => {
 
 const removeFavoriteFilm = (req, res) => {
   const { id } = req.params;
-  const success = favoriteService.removeFilm(id);
+  const success = favoriteService.removeFavoriteFilm(id);
   if (success) {
     res.status(204).send();
   } else {
@@ -42,7 +42,7 @@ const removeFavoriteFilm = (req, res) => {
 
 const removeFavoriteCharacter = (req, res) => {
   const { id } = req.params;
-  const success = favoriteService.removeCharacter(id);
+  const success = favoriteService.removeFavoriteCharacter(id);
   if (success) {
     res.status(204).send();
   } else {

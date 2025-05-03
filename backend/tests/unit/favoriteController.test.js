@@ -66,17 +66,18 @@ describe('Favorite Controller Unit Tests', () => {
       favoriteService.addFilm.mockReturnValue(true);
       
       const req = { 
-        body: { filmId: '1' }
+        params: { id: '1' }
       };
       const res = {
         status: jest.fn().mockReturnThis(),
         json: jest.fn()
       };
       
-      await addFavoriteFilm(req, res);
+      addFavoriteFilm(req, res);
       
-      expect(res.status).toHaveBeenCalledWith(201);
       expect(favoriteService.addFilm).toHaveBeenCalledWith('1');
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
     it('should handle errors', async () => {
@@ -86,7 +87,7 @@ describe('Favorite Controller Unit Tests', () => {
       });
       
       const req = { 
-        body: { filmId: '1' }
+        params: { id: '1' }
       };
       const res = {
         status: jest.fn().mockReturnThis(),
@@ -105,7 +106,7 @@ describe('Favorite Controller Unit Tests', () => {
       favoriteService.addCharacter.mockReturnValue(true);
       
       const req = { 
-        body: { characterId: '1' }
+        params: { id: '1' }
       };
       const res = {
         status: jest.fn().mockReturnThis(),
@@ -114,8 +115,9 @@ describe('Favorite Controller Unit Tests', () => {
       
       addFavoriteCharacter(req, res);
       
-      expect(res.status).toHaveBeenCalledWith(201);
       expect(favoriteService.addCharacter).toHaveBeenCalledWith('1');
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
     it('should handle errors', async () => {
@@ -125,7 +127,7 @@ describe('Favorite Controller Unit Tests', () => {
       });
       
       const req = { 
-        body: { characterId: '1' }
+        params: { id: '1' }
       };
       const res = {
         status: jest.fn().mockReturnThis(),
