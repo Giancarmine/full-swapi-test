@@ -56,7 +56,9 @@ const getCharacterById = async (id) => {
     const response = await swapiClient.get(`/people/${id}`);
     
     if (!response.data || !response.data.result) {
-      throw new Error("Character not found");
+      const notFoundError = new Error("Character not found");
+      notFoundError.status = 404;
+      throw notFoundError;
     }
 
     const character = response.data.result.properties;
@@ -89,10 +91,18 @@ const getCharacterById = async (id) => {
       image: `https://starwars-visualguide.com/assets/img/characters/${id}.jpg`
     };
   } catch (error) {
-    if (error.response && error.response.status === 429) {
-      throw new Error("API rate limit exceeded. Please try again later.");
+    if (error.response?.status === 404) {
+      const notFoundError = new Error("Character not found");
+      notFoundError.status = 404;
+      throw notFoundError;
+    }
+    if (error.response?.status === 429) {
+      const rateLimitError = new Error("API rate limit exceeded. Please try again later.");
+      rateLimitError.status = 429;
+      throw rateLimitError;
     }
     console.error(`Error fetching character with ID ${id}:`, error);
+    error.status = error.status || 500;
     throw error;
   }
 };
@@ -101,4 +111,3 @@ module.exports = {
   getCharacters,
   getCharacterById,
 };
-
