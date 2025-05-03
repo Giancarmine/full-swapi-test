@@ -10,4 +10,3 @@ router.use("/characters", characterRoutes);
 router.use("/favorites", favoriteRoutes);
 
 module.exports = router;
-
