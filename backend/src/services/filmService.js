@@ -57,13 +57,11 @@ const getFilmById = async (id) => {
     }
     
     if (error.response?.status === 404) {
-      const notFoundError = new Error("Film not found");
-      notFoundError.status = 404;
-      throw notFoundError;
+      error.status = 404;
+    } else {
+      error.status = error.status || 500;
     }
-    
     console.error(`Error fetching film with ID ${id}:`, error);
-    error.status = error.status || 500;
     throw error;
   }
 };
