@@ -9,4 +9,3 @@ app.listen(PORT, () => {
   console.log(`API endpoints available at http://${HOST}:${PORT}/api`);
   console.log(`Health check at http://${HOST}:${PORT}/health`);
 });
-

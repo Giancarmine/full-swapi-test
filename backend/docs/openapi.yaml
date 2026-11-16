@@ -1,0 +1,365 @@
+openapi: 3.0.3
+info:
+  title: Star Wars API Explorer Backend
+  version: 1.0.0
+  description: |
+    Express API that proxies and transforms data from SWAPI.tech, with in-memory favorites.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:5000
+    description: Local development
+security: []
+tags:
+  - name: Health
+    description: Service health and status endpoints.
+  - name: Films
+    description: Star Wars film data sourced from SWAPI.
+  - name: Characters
+    description: Star Wars character data sourced from SWAPI.
+  - name: Favorites
+    description: User-scoped favorites for films and characters (persisted locally), identified by optional `X-User-Id` header.
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                required: [status]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/films:
+    get:
+      tags: [Films]
+      summary: List films
+      operationId: listFilms
+      responses:
+        "200":
+          description: List of films
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmSummary"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/films/{id}:
+    get:
+      tags: [Films]
+      summary: Get film by ID
+      operationId: getFilmById
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Film details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Film"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/characters:
+    get:
+      tags: [Characters]
+      summary: List characters
+      operationId: listCharacters
+      responses:
+        "200":
+          description: List of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CharacterSummary"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/characters/{id}:
+    get:
+      tags: [Characters]
+      summary: Get character by ID
+      operationId: getCharacterById
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Character details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/favorites:
+    get:
+      tags: [Favorites]
+      summary: Get favorite films and characters
+      operationId: getFavorites
+      parameters:
+        - $ref: "#/components/parameters/UserIdHeader"
+      responses:
+        "200":
+          description: Favorites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Favorites"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/favorites/films/{id}:
+    post:
+      tags: [Favorites]
+      summary: Add a favorite film
+      operationId: addFavoriteFilm
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+        - $ref: "#/components/parameters/UserIdHeader"
+      responses:
+        "201":
+          description: Favorite added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags: [Favorites]
+      summary: Remove a favorite film
+      operationId: removeFavoriteFilm
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+        - $ref: "#/components/parameters/UserIdHeader"
+      responses:
+        "204":
+          description: Favorite removed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/favorites/characters/{id}:
+    post:
+      tags: [Favorites]
+      summary: Add a favorite character
+      operationId: addFavoriteCharacter
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+        - $ref: "#/components/parameters/UserIdHeader"
+      responses:
+        "201":
+          description: Favorite added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags: [Favorites]
+      summary: Remove a favorite character
+      operationId: removeFavoriteCharacter
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+        - $ref: "#/components/parameters/UserIdHeader"
+      responses:
+        "204":
+          description: Favorite removed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Resource identifier
+    UserIdHeader:
+      name: X-User-Id
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Optional user identifier for scoped favorites (defaults to anonymous).
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    RateLimited:
+      description: Upstream rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [error]
+    Success:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+      required: [success]
+    Favorites:
+      type: object
+      properties:
+        films:
+          type: array
+          items:
+            type: string
+        characters:
+          type: array
+          items:
+            type: string
+      required: [films, characters]
+    FilmSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        director:
+          type: string
+        releaseDate:
+          type: string
+        openingCrawl:
+          type: string
+        characters:
+          type: array
+          items:
+            type: string
+        episodeId:
+          type: integer
+        coverImage:
+          type: string
+      required: [id, title]
+    Film:
+      $ref: "#/components/schemas/FilmSummary"
+    CharacterSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        gender:
+          type: string
+        birthYear:
+          type: string
+        height:
+          type: string
+        mass:
+          type: string
+        homeworld:
+          type: string
+        image:
+          type: string
+        url:
+          type: string
+      required: [id, name]
+    Character:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        gender:
+          type: string
+        birthYear:
+          type: string
+        height:
+          type: string
+        mass:
+          type: string
+        hairColor:
+          type: string
+        eyeColor:
+          type: string
+        skinColor:
+          type: string
+        homeworld:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        image:
+          type: string
+      required: [id, name]

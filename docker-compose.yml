@@ -1,8 +1,8 @@
-version: "3.8"
-
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      target: dev
     ports:
       - "5000:5000"
     environment:
@@ -13,4 +13,10 @@ services:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 

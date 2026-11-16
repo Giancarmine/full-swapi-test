@@ -1,0 +1,33 @@
+const js = require("@eslint/js");
+const globals = require("globals");
+const prettier = require("eslint-config-prettier");
+
+module.exports = [
+  {
+    ignores: ["coverage/**", "node_modules/**"],
+  },
+  js.configs.recommended,
+  {
+    files: ["**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
+    },
+  },
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+      },
+    },
+  },
+  prettier,
+];

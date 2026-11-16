@@ -6,9 +6,9 @@ const swapiClient = axios.create({
   baseURL: SWAPI_BASE_URL || "https://www.swapi.tech/api",
   timeout: 10000,
   headers: {
-    "Accept": "application/json",
-    "User-Agent": "StarWarsApp/1.0"
-  }
+    Accept: "application/json",
+    "User-Agent": "StarWarsApp/1.0",
+  },
 });
 
 // Rate limiting variables
@@ -19,13 +19,11 @@ let lastRequestTime = 0;
 swapiClient.interceptors.request.use(async (config) => {
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
-  
+
   if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
-    await new Promise(resolve => 
-      setTimeout(resolve, RATE_LIMIT_DELAY - timeSinceLastRequest)
-    );
+    await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_DELAY - timeSinceLastRequest));
   }
-  
+
   lastRequestTime = Date.now();
   return config;
 });
@@ -33,15 +31,25 @@ swapiClient.interceptors.request.use(async (config) => {
 // Add response interceptor for error handling
 swapiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 429) {
-      console.warn("Rate limited by SWAPI. Waiting before retrying...");
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(swapiClient(error.config));
-        }, 5000); // Wait 5 seconds before retrying
-      });
+  async (error) => {
+    const config = error.config || {};
+    const status = error.response?.status;
+
+    if (status === 429) {
+      const retryCount = config.__retryCount || 0;
+      const maxRetries = 2;
+
+      if (retryCount < maxRetries) {
+        config.__retryCount = retryCount + 1;
+        const delayMs = 1000 * 2 ** retryCount;
+        console.warn(
+          `Rate limited by SWAPI. Retrying in ${delayMs}ms (attempt ${config.__retryCount}/${maxRetries})...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        return swapiClient(config);
+      }
     }
+
     return Promise.reject(error);
   }
 );
@@ -57,4 +65,3 @@ module.exports = {
   swapiClient,
   extractIdFromUrl,
 };
-

@@ -1,4 +1,5 @@
 const characterService = require("../services/characterService");
+const { notFound } = require("../utils/httpError");
 
 const getAllCharacters = async (req, res, next) => {
   try {
@@ -13,20 +14,14 @@ const getCharacterById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const character = await characterService.getCharacterById(id);
-    
+
     if (!character) {
-      return res.status(404).json({ error: 'Character not found' });
+      return next(notFound("Character not found"));
     }
-    
-    res.status(200).json(character);
+
+    return res.status(200).json(character);
   } catch (error) {
-    if (error.status === 404) {
-      return res.status(404).json({ error: error.message });
-    }
-    if (error.status === 429) {
-      return res.status(429).json({ error: error.message });
-    }
-    next(error);
+    return next(error);
   }
 };
 

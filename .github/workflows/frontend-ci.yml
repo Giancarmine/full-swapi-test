@@ -4,35 +4,104 @@ on:
   push:
     paths:
       - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
   pull_request:
     paths:
       - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  detect:
+    name: Detect frontend project
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 5
+    outputs:
+      has_package_json: ${{ steps.check.outputs.has_package_json }}
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm install
-      working-directory: ./frontend
-    
-    - name: Run tests
-      run: npm test
-      working-directory: ./frontend
-    
-    - name: Run linter
-      run: npm run lint
-      working-directory: ./frontend
-    
-    - name: Build
-      run: npm run build
-      working-directory: ./frontend
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Check for frontend package manifest
+        id: check
+        run: |
+          if [ -f frontend/package.json ]; then
+            echo "has_package_json=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_package_json=false" >> "$GITHUB_OUTPUT"
+            echo "No frontend/package.json found; Node CI steps will be skipped."
+          fi
+
+  lint-test-build:
+    name: Lint, Test & Build (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: detect
+    if: needs.detect.outputs.has_package_json == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x, 22.x]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Detect lockfile
+        id: lockfile
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "cache_path=frontend/package-lock.json" >> "$GITHUB_OUTPUT"
+            echo "install=npm ci" >> "$GITHUB_OUTPUT"
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+            echo "cache_path=frontend/yarn.lock" >> "$GITHUB_OUTPUT"
+            echo "install=yarn install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+          elif [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+            echo "cache_path=frontend/pnpm-lock.yaml" >> "$GITHUB_OUTPUT"
+            echo "install=corepack enable && pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+          else
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "cache_path=" >> "$GITHUB_OUTPUT"
+            echo "install=npm install" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: ${{ steps.lockfile.outputs.manager }}
+          cache-dependency-path: ${{ steps.lockfile.outputs.cache_path || '' }}
+
+      - name: Install dependencies
+        run: ${{ steps.lockfile.outputs.install }}
+
+      - name: Run linter (if configured)
+        run: npm run lint --if-present
+
+      - name: Run tests (if configured)
+        run: npm run test --if-present
+
+      - name: Build (if configured)
+        run: npm run build --if-present
+
+  skip-notice:
+    name: Frontend CI skipped (no package.json)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: detect
+    if: needs.detect.outputs.has_package_json != 'true'
+    steps:
+      - name: Report skip
+        run: echo "Frontend directory has no package.json; skipping Node install/test/lint/build."

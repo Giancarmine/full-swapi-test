@@ -1,4 +1,5 @@
 const filmService = require("../services/filmService");
+const { notFound } = require("../utils/httpError");
 
 const getAllFilms = async (req, res, next) => {
   try {
@@ -13,20 +14,14 @@ const getFilmById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const film = await filmService.getFilmById(id);
-    
+
     if (!film) {
-      return res.status(404).json({ error: 'Film not found' });
+      return next(notFound("Film not found"));
     }
-    
-    res.status(200).json(film);
+
+    return res.status(200).json(film);
   } catch (error) {
-    if (error.status === 404) {
-      return res.status(404).json({ error: error.message });
-    }
-    if (error.status === 429) {
-      return res.status(429).json({ error: error.message });
-    }
-    next(error);
+    return next(error);
   }
 };
 

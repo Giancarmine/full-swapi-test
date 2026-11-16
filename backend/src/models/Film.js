@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const filmSchema = new mongoose.Schema({
   title: String,
@@ -13,7 +13,7 @@ const filmSchema = new mongoose.Schema({
   species: [String],
   created: Date,
   edited: Date,
-  url: String
+  url: String,
 });
 
-module.exports = mongoose.model('Film', filmSchema);
+module.exports = mongoose.model("Film", filmSchema);

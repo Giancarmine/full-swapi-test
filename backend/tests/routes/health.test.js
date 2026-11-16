@@ -8,4 +8,3 @@ describe("Health Check Endpoint", () => {
     expect(response.body).toHaveProperty("status", "ok");
   });
 });
-

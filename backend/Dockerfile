@@ -1,20 +1,27 @@
-FROM node:20-alpine
-
-# Create app directory
+FROM node:20-alpine AS base
 WORKDIR /usr/src/app
 
-# Copy package files
+FROM base AS deps
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
+FROM base AS prod-deps
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Bundle app source
-COPY . .
-
-# Expose port
+FROM base AS dev
+ENV NODE_ENV=development
+COPY --from=deps --chown=node:node /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node . .
 EXPOSE 5000
+USER node
+CMD ["npm", "run", "dev"]
 
-# Start command
-CMD [ "npm", "run", "dev" ]
+FROM base AS prod
+ENV NODE_ENV=production
+COPY --from=prod-deps --chown=node:node /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node . .
+EXPOSE 5000
+USER node
+CMD ["npm", "start"]
 
