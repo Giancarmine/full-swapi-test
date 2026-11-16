@@ -65,7 +65,10 @@ describe("Character Routes Integration Tests", () => {
       const response = await request(app).get("/api/characters/1");
 
       expect(response.statusCode).toBe(429);
-      expect(response.body).toMatchObject({ error: "API rate limit exceeded", code: "rate_limited" });
+      expect(response.body).toMatchObject({
+        error: "API rate limit exceeded",
+        code: "rate_limited",
+      });
     });
   });
 });
