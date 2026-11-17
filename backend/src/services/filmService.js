@@ -27,7 +27,7 @@ const getFilms = async () =>
       return response.data.result.map((film) => mapFilm(film.properties));
     } catch (error) {
       if (error.response && error.response.status === 429) {
-        throw new Error("API rate limit exceeded. Please try again later.");
+        throw new Error("API rate limit exceeded. Please try again later.", { cause: error });
       }
       console.error("Error fetching films:", error);
       throw error;
