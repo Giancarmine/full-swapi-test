@@ -28,11 +28,12 @@ updates:
           - "minor"
           - "patch"
     ignore:
-      # jsdom 31 requires Node >=22.22, which is incompatible with the CI
+      # jsdom >=30 requires Node >=22.22, which is incompatible with the CI
       # Node 20.x matrix entry and the backend's Node 20 engine support.
+      # Keep proposing updates up to jsdom 29.x.
       - dependency-name: "jsdom"
-        update-types:
-          - "version-update:semver-major"
+        versions:
+          - ">=30.0.0"
 
   - package-ecosystem: "github-actions"
     directory: "/"
