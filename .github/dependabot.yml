@@ -10,6 +10,12 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # swagger-parser 13 requires Node >=22.19 and ships ESM-only internals,
+      # which breaks the Jest CommonJS contract test while Node 20 is supported.
+      - dependency-name: "@apidevtools/swagger-parser"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "npm"
     directory: "/frontend"
