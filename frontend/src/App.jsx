@@ -53,9 +53,10 @@ export default function App() {
   }
 
   useEffect(() => {
+    // Initial fetch intentionally updates loading/data state after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAll(activeUserId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function toggleFilmFavorite(id) {
     const key = `film-${id}`;
