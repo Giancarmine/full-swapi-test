@@ -46,7 +46,7 @@ const getCharacters = async () =>
       return charactersWithDetails;
     } catch (error) {
       if (error.response && error.response.status === 429) {
-        throw new Error("API rate limit exceeded. Please try again later.");
+        throw new Error("API rate limit exceeded. Please try again later.", { cause: error });
       }
       console.error("Error fetching characters:", error);
       throw error;
