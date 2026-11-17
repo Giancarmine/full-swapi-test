@@ -29,6 +29,41 @@ describe("Favorite Routes Integration Tests", () => {
         characters: ["2"],
       });
     });
+
+    it("should scope favorites to the X-User-Id header", async () => {
+      favoriteService.getFavoriteFilms.mockReturnValue([]);
+      favoriteService.getFavoriteCharacters.mockReturnValue([]);
+
+      const response = await request(app).get("/api/favorites").set("X-User-Id", "user-1");
+
+      expect(response.statusCode).toBe(200);
+      expect(favoriteService.getFavoriteFilms).toHaveBeenCalledWith("user-1");
+      expect(favoriteService.getFavoriteCharacters).toHaveBeenCalledWith("user-1");
+    });
+
+    it("should default to anonymous when X-User-Id is absent", async () => {
+      favoriteService.getFavoriteFilms.mockReturnValue([]);
+      favoriteService.getFavoriteCharacters.mockReturnValue([]);
+
+      const response = await request(app).get("/api/favorites");
+
+      expect(response.statusCode).toBe(200);
+      expect(favoriteService.getFavoriteFilms).toHaveBeenCalledWith("anonymous");
+    });
+
+    it("should reject an X-User-Id header with invalid characters", async () => {
+      const response = await request(app).get("/api/favorites").set("X-User-Id", "bad id");
+
+      expect(response.statusCode).toBe(400);
+      expect(favoriteService.getFavoriteFilms).not.toHaveBeenCalled();
+    });
+
+    it("should reject an X-User-Id header longer than 64 characters", async () => {
+      const response = await request(app).get("/api/favorites").set("X-User-Id", "a".repeat(65));
+
+      expect(response.statusCode).toBe(400);
+      expect(favoriteService.getFavoriteFilms).not.toHaveBeenCalled();
+    });
   });
 
   describe("POST /favorites/films/:id", () => {

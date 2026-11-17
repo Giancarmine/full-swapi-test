@@ -7,8 +7,11 @@ const {
   removeFavoriteCharacter,
 } = require("../controllers/favoriteController");
 const { validateIdParam } = require("../middleware/validateId");
+const { validateUserId } = require("../middleware/validateUserId");
 
 const router = express.Router();
+
+router.use(validateUserId);
 
 router.get("/", getFavorites);
 router.post("/films/:id", validateIdParam("id"), addFavoriteFilm);

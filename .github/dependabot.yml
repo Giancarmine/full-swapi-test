@@ -10,12 +10,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    ignore:
-      # swagger-parser 13 requires Node >=22.19 and ships ESM-only internals,
-      # which breaks the Jest CommonJS contract test while Node 20 is supported.
-      - dependency-name: "@apidevtools/swagger-parser"
-        update-types:
-          - "version-update:semver-major"
 
   - package-ecosystem: "npm"
     directory: "/frontend"
@@ -27,13 +21,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    ignore:
-      # jsdom >=30 requires Node >=22.22, which is incompatible with the CI
-      # Node 20.x matrix entry and the backend's Node 20 engine support.
-      # Keep proposing updates up to jsdom 29.x.
-      - dependency-name: "jsdom"
-        versions:
-          - ">=30.0.0"
 
   - package-ecosystem: "github-actions"
     directory: "/"

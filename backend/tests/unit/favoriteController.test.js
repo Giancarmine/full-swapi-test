@@ -29,7 +29,7 @@ describe("Favorite Controller Unit Tests", () => {
       favoriteService.getFavoriteFilms.mockReturnValue(mockFilms);
       favoriteService.getFavoriteCharacters.mockReturnValue(mockCharacters);
 
-      const req = { get: jest.fn().mockReturnValue("user-1") };
+      const req = { userId: "user-1" };
       const res = { json: jest.fn() };
 
       getFavorites(req, res);
@@ -44,7 +44,7 @@ describe("Favorite Controller Unit Tests", () => {
         throw error;
       });
 
-      const req = { get: jest.fn().mockReturnValue(undefined) };
+      const req = {};
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
@@ -58,7 +58,7 @@ describe("Favorite Controller Unit Tests", () => {
     it("should add a film favorite", async () => {
       favoriteService.addFavoriteFilm.mockReturnValue(["1"]);
 
-      const req = { params: { id: "1" }, get: jest.fn().mockReturnValue("user-1") };
+      const req = { params: { id: "1" }, userId: "user-1" };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
@@ -75,7 +75,7 @@ describe("Favorite Controller Unit Tests", () => {
         throw error;
       });
 
-      const req = { params: { id: "1" }, get: jest.fn().mockReturnValue(undefined) };
+      const req = { params: { id: "1" }, userId: "anonymous" };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
@@ -89,7 +89,7 @@ describe("Favorite Controller Unit Tests", () => {
     it("should add a character favorite", async () => {
       favoriteService.addFavoriteCharacter.mockReturnValue(["1"]);
 
-      const req = { params: { id: "1" }, get: jest.fn().mockReturnValue("user-1") };
+      const req = { params: { id: "1" }, userId: "user-1" };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
@@ -106,7 +106,7 @@ describe("Favorite Controller Unit Tests", () => {
         throw error;
       });
 
-      const req = { params: { id: "1" }, get: jest.fn().mockReturnValue(undefined) };
+      const req = { params: { id: "1" }, userId: "anonymous" };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const next = jest.fn();
 
@@ -120,7 +120,7 @@ describe("Favorite Controller Unit Tests", () => {
     it("should remove a film favorite", async () => {
       favoriteService.removeFavoriteFilm.mockReturnValue(true);
 
-      const req = { params: { id: "1" }, get: jest.fn().mockReturnValue("user-1") };
+      const req = { params: { id: "1" }, userId: "user-1" };
       const res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
       const next = jest.fn();
 
@@ -134,7 +134,7 @@ describe("Favorite Controller Unit Tests", () => {
     it("should return 404 if film not found", async () => {
       favoriteService.removeFavoriteFilm.mockReturnValue(false);
 
-      const req = { params: { id: "999" }, get: jest.fn().mockReturnValue("user-1") };
+      const req = { params: { id: "999" }, userId: "user-1" };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn(), send: jest.fn() };
       const next = jest.fn();
 
@@ -149,7 +149,7 @@ describe("Favorite Controller Unit Tests", () => {
     it("should remove a character favorite", async () => {
       favoriteService.removeFavoriteCharacter.mockReturnValue(true);
 
-      const req = { params: { id: "1" }, get: jest.fn().mockReturnValue("user-1") };
+      const req = { params: { id: "1" }, userId: "user-1" };
       const res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
       const next = jest.fn();
 
@@ -163,7 +163,7 @@ describe("Favorite Controller Unit Tests", () => {
     it("should return 404 if character not found", async () => {
       favoriteService.removeFavoriteCharacter.mockReturnValue(false);
 
-      const req = { params: { id: "999" }, get: jest.fn().mockReturnValue("user-1") };
+      const req = { params: { id: "999" }, userId: "user-1" };
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn(), send: jest.fn() };
       const next = jest.fn();
 

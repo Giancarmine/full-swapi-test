@@ -19,7 +19,11 @@ tags:
   - name: Characters
     description: Star Wars character data sourced from SWAPI.
   - name: Favorites
-    description: User-scoped favorites for films and characters (persisted locally), identified by optional `X-User-Id` header.
+    description: |
+      User-scoped favorites for films and characters, identified by an optional
+      `X-User-Id` header (defaults to `anonymous`). User IDs are limited to 64
+      characters and may contain letters, digits, `.`, `_`, and `-`. Per-user
+      favorites and total in-memory users are capped by the server.
 paths:
   /health:
     get:
@@ -138,6 +142,8 @@ paths:
                 $ref: "#/components/schemas/Favorites"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
         "500":
           $ref: "#/components/responses/InternalError"
   /api/favorites/films/{id}:
@@ -157,6 +163,8 @@ paths:
                 $ref: "#/components/schemas/Success"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
         "500":
           $ref: "#/components/responses/InternalError"
     delete:
@@ -173,6 +181,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
         "500":
           $ref: "#/components/responses/InternalError"
   /api/favorites/characters/{id}:
@@ -192,6 +202,8 @@ paths:
                 $ref: "#/components/schemas/Success"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
         "500":
           $ref: "#/components/responses/InternalError"
     delete:
@@ -208,6 +220,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
         "500":
           $ref: "#/components/responses/InternalError"
 components:
@@ -225,7 +239,12 @@ components:
       required: false
       schema:
         type: string
-      description: Optional user identifier for scoped favorites (defaults to anonymous).
+        minLength: 1
+        maxLength: 64
+        pattern: "^[A-Za-z0-9._-]+$"
+      description: |
+        Optional user identifier for scoped favorites (defaults to `anonymous`).
+        Must be 1-64 characters using only letters, digits, `.`, `_`, or `-`.
   responses:
     BadRequest:
       description: Invalid request
@@ -240,7 +259,7 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
     RateLimited:
-      description: Upstream rate limit exceeded
+      description: Request rate limit or favorites capacity limit exceeded
       content:
         application/json:
           schema:

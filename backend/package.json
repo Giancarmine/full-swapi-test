@@ -1,9 +1,10 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
@@ -17,11 +18,10 @@
   "license": "ISC",
   "description": "",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.1.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "axios": "^1.21.1",

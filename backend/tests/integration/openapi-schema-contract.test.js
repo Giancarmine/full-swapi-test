@@ -1,8 +1,8 @@
 const request = require("supertest");
 const path = require("path");
-const SwaggerParser = require("@apidevtools/swagger-parser");
 const Ajv = require("ajv");
 const addFormats = require("ajv-formats");
+const { dereferenceFile } = require("../helpers/dereference");
 
 jest.mock("../../src/services/filmService");
 jest.mock("../../src/services/characterService");
@@ -26,7 +26,7 @@ describe("OpenAPI schema contract", () => {
   let ajv;
 
   beforeAll(async () => {
-    spec = await SwaggerParser.dereference(specPath);
+    spec = dereferenceFile(specPath);
     ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
   });

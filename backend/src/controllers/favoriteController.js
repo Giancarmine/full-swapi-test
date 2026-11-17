@@ -1,7 +1,7 @@
 const favoriteService = require("../services/favoriteService");
 const { notFound } = require("../utils/httpError");
 
-const getUserId = (req) => req.get("x-user-id") || "anonymous";
+const getUserId = (req) => req.userId || "anonymous";
 
 const getFavorites = (req, res, next) => {
   try {

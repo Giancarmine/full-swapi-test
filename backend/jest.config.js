@@ -1,10 +1,10 @@
 module.exports = {
   testEnvironment: "node",
   testMatch: ["**/tests/**/*.test.js"],
-  collectCoverage: true,
+  collectCoverage: false,
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov"],
-  coveragePathIgnorePatterns: ["/node_modules/"],
+  coveragePathIgnorePatterns: ["/node_modules/", "/tests/"],
   coverageThreshold: {
     global: {
       statements: 90,
