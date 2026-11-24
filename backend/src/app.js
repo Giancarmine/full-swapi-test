@@ -9,10 +9,14 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yaml");
 const rateLimit = require("express-rate-limit");
 const OpenApiValidator = require("express-openapi-validator");
+const compression = require("compression");
 const routes = require("./routes");
+const favoriteService = require("./services/favoriteService");
+const { metricsMiddleware, metricsHandler } = require("./utils/metrics");
 
 // Initialize express app
 const app = express();
+app.set("etag", "weak"); // Explicit weak validators for JSON responses.
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -82,9 +86,11 @@ const requestLogger = (req, res, next) => {
 
 // Apply middleware
 app.use(helmet()); // Security headers
+app.use(compression()); // gzip/deflate for eligible responses
 app.use(cors(buildCorsOptions())); // Configurable allowlist via CORS_ORIGINS
 app.use(requestId);
 app.use(requestLogger);
+app.use(metricsMiddleware);
 app.use(express.json({ limit: "100kb" })); // Parse JSON bodies
 
 const apiLimiter = rateLimit({
@@ -118,10 +124,23 @@ if (!isProduction) {
   }
 }
 
-// Health check endpoint
+// Health check endpoints
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+app.get("/health/ready", (req, res) => {
+  const health = favoriteService.getStoreHealth() || {};
+  const ready = health.ok === true;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ok" : "error",
+    checks: { favorites: ready ? "ok" : "error" },
+    store: health.store || "unknown",
+    uptimeSeconds: Math.round(process.uptime() * 100) / 100,
+  });
+});
+
+app.get("/metrics", metricsHandler);
 
 // Error handler middleware
 app.use((err, req, res, _next) => {

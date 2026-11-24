@@ -9,13 +9,15 @@ services:
       - NODE_ENV=development
       - PORT=5000
       - SWAPI_BASE_URL=https://www.swapi.tech/api
+      - FAVORITES_STORE=sqlite
+      - FAVORITES_DB_FILE=/usr/src/app/data/favorites.db
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
     init: true
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health/ready"]
       interval: 30s
       timeout: 5s
       retries: 3

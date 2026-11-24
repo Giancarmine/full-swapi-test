@@ -4,7 +4,15 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 
 export default [
-  { ignores: ["dist/**", "coverage/**", "node_modules/**"] },
+  {
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      "node_modules/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
+  },
   js.configs.recommended,
   {
     files: ["**/*.{js,jsx}"],
@@ -25,11 +33,11 @@ export default [
     },
   },
   {
-    files: ["vite.config.js", "eslint.config.js"],
+    files: ["vite.config.js", "eslint.config.js", "playwright.config.js"],
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ["**/*.test.{js,jsx}", "src/test/**/*.{js,jsx}"],
+    files: ["**/*.test.{js,jsx}", "src/test/**/*.{js,jsx}", "e2e/**/*.{js,jsx}"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

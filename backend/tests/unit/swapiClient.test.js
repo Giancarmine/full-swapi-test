@@ -47,4 +47,29 @@ describe("swapiClient utils", () => {
     expect(swapiClient).toHaveBeenCalledWith(expect.objectContaining({ __retryCount: 1 }));
     jest.useRealTimers();
   });
+
+  it("passes successful upstream responses through unchanged", () => {
+    const axios = require("axios");
+    require("../../src/utils/swapiClient");
+    const [fulfilled] = axios.__instance.interceptors.response.use.mock.calls[0];
+    const response = { data: { ok: true } };
+
+    expect(fulfilled(response)).toBe(response);
+  });
+
+  it("honors a configurable request interval", async () => {
+    jest.useFakeTimers();
+    process.env.SWAPI_MIN_REQUEST_INTERVAL_MS = "25";
+    const axios = require("axios");
+    require("../../src/utils/swapiClient");
+    const interceptor = axios.__instance.interceptors.request.use.mock.calls[0][0];
+
+    await interceptor({ url: "/a" });
+    const pending = interceptor({ url: "/b" });
+    await jest.advanceTimersByTimeAsync(25);
+
+    await expect(pending).resolves.toMatchObject({ url: "/b" });
+    delete process.env.SWAPI_MIN_REQUEST_INTERVAL_MS;
+    jest.useRealTimers();
+  });
 });

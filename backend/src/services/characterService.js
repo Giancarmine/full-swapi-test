@@ -10,43 +10,19 @@ const getCharacters = async () =>
         throw new Error("Invalid API response structure");
       }
 
-      // First get the basic character list
-      const characterList = response.data.results.map((char) => ({
+      // The list endpoint only needs summaries. Details are fetched lazily by
+      // getCharacterById (and cached there), avoiding one upstream call per row.
+      return response.data.results.map((char) => ({
         id: char.uid,
         name: char.name,
         url: char.url,
+        image: `https://starwars-visualguide.com/assets/img/characters/${char.uid}.jpg`,
       }));
-
-      // Then fetch details for each character
-      const charactersWithDetails = await Promise.all(
-        characterList.map(async (char) => {
-          try {
-            const detailsResponse = await swapiClient.get(`/people/${char.id}`);
-            if (!detailsResponse.data || !detailsResponse.data.result) {
-              return char; // Return basic info if details fail
-            }
-
-            const details = detailsResponse.data.result.properties;
-            return {
-              ...char,
-              gender: details.gender,
-              birthYear: details.birth_year,
-              height: details.height,
-              mass: details.mass,
-              homeworld: extractIdFromUrl(details.homeworld),
-              image: `https://starwars-visualguide.com/assets/img/characters/${char.id}.jpg`,
-            };
-          } catch (error) {
-            console.error(`Error fetching details for character ${char.id}:`, error);
-            return char; // Return basic info if details fail
-          }
-        })
-      );
-
-      return charactersWithDetails;
     } catch (error) {
       if (error.response && error.response.status === 429) {
-        throw new Error("API rate limit exceeded. Please try again later.", { cause: error });
+        const rateLimitError = new Error("API rate limit exceeded. Please try again later.");
+        rateLimitError.status = 429;
+        throw rateLimitError;
       }
       console.error("Error fetching characters:", error);
       throw error;

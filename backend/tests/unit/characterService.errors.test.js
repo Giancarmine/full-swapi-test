@@ -13,7 +13,7 @@ const characterService = require("../../src/services/characterService");
 
 describe("characterService error and fallback branches", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     cache.clear();
   });
 
@@ -24,33 +24,27 @@ describe("characterService error and fallback branches", () => {
     );
   });
 
-  it("getCharacters maps 429 to friendly error", async () => {
+  it("getCharacters maps 429 to a rate limit error with status", async () => {
     swapiClient.get.mockRejectedValue({ response: { status: 429 } });
-    await expect(characterService.getCharacters()).rejects.toThrow(
-      "API rate limit exceeded. Please try again later."
-    );
+    await expect(characterService.getCharacters()).rejects.toMatchObject({
+      status: 429,
+      message: "API rate limit exceeded. Please try again later.",
+    });
   });
 
-  it("getCharacters falls back to basic info when detail fetch fails", async () => {
-    swapiClient.get
-      .mockResolvedValueOnce({
-        data: { results: [{ uid: "1", name: "Luke", url: "https://www.swapi.tech/api/people/1" }] },
-      })
-      .mockRejectedValueOnce(new Error("detail fail"));
+  it("getCharacters avoids the N+1 detail fan-out for large lists", async () => {
+    const results = Array.from({ length: 12 }, (_, index) => ({
+      uid: String(index + 1),
+      name: `Character ${index + 1}`,
+      url: `https://www.swapi.tech/api/people/${index + 1}`,
+    }));
+    swapiClient.get.mockResolvedValue({ data: { results } });
 
-    const result = await characterService.getCharacters();
-    expect(result).toEqual([{ id: "1", name: "Luke", url: "https://www.swapi.tech/api/people/1" }]);
-  });
+    const characters = await characterService.getCharacters();
 
-  it("getCharacters falls back when detail response is invalid", async () => {
-    swapiClient.get
-      .mockResolvedValueOnce({
-        data: { results: [{ uid: "2", name: "Leia", url: "u" }] },
-      })
-      .mockResolvedValueOnce({ data: {} });
-
-    const result = await characterService.getCharacters();
-    expect(result).toEqual([{ id: "2", name: "Leia", url: "u" }]);
+    expect(characters).toHaveLength(12);
+    expect(swapiClient.get).toHaveBeenCalledTimes(1);
+    expect(swapiClient.get).toHaveBeenCalledWith("/people");
   });
 
   it("getCharacterById maps 429 to rate limit error with status", async () => {

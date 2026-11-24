@@ -11,8 +11,13 @@ const swapiClient = axios.create({
   },
 });
 
-// Rate limiting variables
-const RATE_LIMIT_DELAY = 1000; // 1 second between requests
+// Rate limiting variables (tunable so local tests/CI do not pay the upstream pacing)
+const positiveEnvInt = (name, fallback) => {
+  const parsed = Number(process.env[name]);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+};
+const RATE_LIMIT_DELAY = positiveEnvInt("SWAPI_MIN_REQUEST_INTERVAL_MS", 1000);
+const MAX_RETRIES = positiveEnvInt("SWAPI_MAX_RETRIES", 2);
 let lastRequestTime = 0;
 
 // Add request interceptor for rate limiting
@@ -37,13 +42,12 @@ swapiClient.interceptors.response.use(
 
     if (status === 429) {
       const retryCount = config.__retryCount || 0;
-      const maxRetries = 2;
 
-      if (retryCount < maxRetries) {
+      if (retryCount < MAX_RETRIES) {
         config.__retryCount = retryCount + 1;
         const delayMs = 1000 * 2 ** retryCount;
         console.warn(
-          `Rate limited by SWAPI. Retrying in ${delayMs}ms (attempt ${config.__retryCount}/${maxRetries})...`
+          `Rate limited by SWAPI. Retrying in ${delayMs}ms (attempt ${config.__retryCount}/${MAX_RETRIES})...`
         );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         return swapiClient(config);

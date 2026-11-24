@@ -49,6 +49,18 @@ describe("favoriteService", () => {
     expect(favoriteService.removeFavoriteCharacter("4", "u1")).toBe(false);
   });
 
+  it("keeps the user entry when other favorites remain", () => {
+    process.env.FAVORITES_MAX_USERS = "1";
+
+    favoriteService.addFavoriteFilm("1", "u1");
+    favoriteService.addFavoriteCharacter("2", "u1");
+    expect(favoriteService.removeFavoriteCharacter("2", "u1")).toBe(true);
+    expect(favoriteService.getFavoriteFilms("u1")).toEqual(["1"]);
+    expect(() => favoriteService.addFavoriteFilm("3", "u2")).toThrow(
+      expect.objectContaining({ code: "favorites_user_limit_reached" })
+    );
+  });
+
   it("reads favorites without creating a user entry", () => {
     process.env.FAVORITES_MAX_USERS = "1";
     favoriteService.addFavoriteFilm("1", "user-1");

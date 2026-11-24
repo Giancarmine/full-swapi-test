@@ -3,7 +3,8 @@ info:
   title: Star Wars API Explorer Backend
   version: 1.0.0
   description: |
-    Express API that proxies and transforms data from SWAPI.tech, with in-memory favorites.
+    Express API that proxies and transforms data from SWAPI.tech, with repository-backed
+    favorites (SQLite for local/Docker, in-memory for tests and serverless fallbacks).
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -23,7 +24,7 @@ tags:
       User-scoped favorites for films and characters, identified by an optional
       `X-User-Id` header (defaults to `anonymous`). User IDs are limited to 64
       characters and may contain letters, digits, `.`, `_`, and `-`. Per-user
-      favorites and total in-memory users are capped by the server.
+      favorites and total stored users are capped by the server.
 paths:
   /health:
     get:
@@ -46,6 +47,43 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalError"
+  /health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness check
+      description: Reports whether the favorites repository is reachable.
+      operationId: getReadiness
+      responses:
+        "200":
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "503":
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+  /metrics:
+    get:
+      tags: [Health]
+      summary: Prometheus metrics
+      operationId: getMetrics
+      responses:
+        "200":
+          description: Prometheus exposition-format metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/films:
     get:
       tags: [Films]
@@ -54,6 +92,15 @@ paths:
       responses:
         "200":
           description: List of films
+          headers:
+            ETag:
+              description: Weak validator for the response body.
+              schema:
+                type: string
+            Cache-Control:
+              description: Shared cache policy for the list response.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -94,6 +141,15 @@ paths:
       responses:
         "200":
           description: List of characters
+          headers:
+            ETag:
+              description: Weak validator for the response body.
+              schema:
+                type: string
+            Cache-Control:
+              description: Shared cache policy for the list response.
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -271,6 +327,25 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
   schemas:
+    Readiness:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        checks:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            favorites: ok
+        store:
+          type: string
+          example: sqlite
+        uptimeSeconds:
+          type: number
+          example: 12.34
+      required: [status, checks]
     Error:
       type: object
       properties:
